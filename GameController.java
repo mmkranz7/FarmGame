@@ -18,6 +18,8 @@ import javax.swing.WindowConstants;
 public class GameController extends JFrame{
 	Land land;
 	Spaces space;
+	Planter planter;
+	Menu menus;
 	int counter;
 	int MouseX;
 	int MouseY;
@@ -25,6 +27,9 @@ public class GameController extends JFrame{
 	int CELL_SIZE = 100;
 	ArrayList<Land> Lands = new ArrayList<>();
 	ArrayList<Spaces> Spaces= new ArrayList<>();
+	ArrayList<Plants> Plants= new ArrayList<>();
+	ArrayList<Menu> menu= new ArrayList<>();
+	ArrayList<Plants> PlantedPlants= new ArrayList<>();
 
 	public GameController(){
 		initGUI();
@@ -43,7 +48,7 @@ public class GameController extends JFrame{
 	}
 	public void initObj(){
 		System.out.println("Obj");
-		Lands.add(new Land(this,0,0,0,0,4,4));
+		Lands.add(new Land(this,0,0,0,0,9,9));
 		if(Lands.get(0).Size==2){
 			Lands.get(0).Width=1;
 			Lands.get(0).Height=2;
@@ -53,12 +58,14 @@ public class GameController extends JFrame{
 		}
 		for(int x =0; x<Lands.get(0).Size;  x++){
 			Spaces.add(new Spaces(this,Lands.get(0).xPos+(CELL_SIZE*x),Lands.get(0).yPos+(CELL_SIZE*x),CELL_SIZE-(CELL_SIZE/20),CELL_SIZE-(CELL_SIZE/20),""));
+			System.out.println("HI");
 		}
-
-
+		Plants.add(new Plants(this,0,0,0,0, "Blueberry", 0,1000,10,false,false));
+//		menu.add(new Menu(this,100,100,100,20,"BLUEBERRY"));
 	}
 	public void step(){
 		MouseControl(MouseX, MouseY);
+		PlantControl();
 		if(Lands.get(0).Size==2){
 			Lands.get(0).Width=1;
 			Lands.get(0).Height=2;
@@ -75,6 +82,7 @@ public class GameController extends JFrame{
 
 		}
 		SpacesControl();
+		
 	}
 	public void delay (int time){
 		try{
@@ -91,30 +99,47 @@ public class GameController extends JFrame{
 			g.setColor(new Color(25,150,50));
 			g.fillRect(Lands.get(0).xPos,Lands.get(0).yPos, Lands.get(0).Width*CELL_SIZE, Lands.get(0).Height*CELL_SIZE);
 		}
-		g.setColor(new Color(200,100,0));
 		for(Spaces x : Spaces){
+			g.setColor(new Color(200,100,0));
 			g.fillRect(x.xPos, x.yPos, x.Width, x.Height);
+			g.setColor(new Color(150,75,0));
+			g.drawRect(x.xPos, x.yPos, x.Width, x.Height);
+		}
+		menu.add(new Menu(this,100,100,100,20,"BLUEBERRY"));
+		for(Menu x : menu){
+			g.setColor(Color.BLUE);
+			g.drawRect(x.xPos, x.yPos, x.Width, x.Height);
+			g.drawString(x.text, x.xPos+10, x.yPos+10);
 		}
 		delay(25);
 		step();
 		repaint();
+	}
+	public void PlantControl(){
+		for(Plants x : PlantedPlants){
+			x.CurrentGrowth+=.1;
+			if(x.CurrentGrowth>=x.GrowthTime){
+				x.Harvestable=true;
+			}
+		}
 	}
 	public void SpacesControl(){
 		Land l = Lands.get(0);
 		int num =0;
 		int numofdown=0;
 		for(Spaces x : Spaces){
-			System.out.println("HI");
 			if(num<l.Width){
 				x.xPos=l.xPos+num*CELL_SIZE;
+				x.yPos=l.yPos+numofdown*CELL_SIZE;
 			}else{
 				numofdown++;
-				x.yPos=l.yPos+numofdown*CELL_SIZE;
 				num=0;
+				x.xPos=l.xPos+num*CELL_SIZE;
+				x.yPos=l.yPos+numofdown*CELL_SIZE;
 			}
 			num++;
 		}
-		break;
+		
 
 	}
 
@@ -161,7 +186,8 @@ public class GameController extends JFrame{
 		@Override
 		public void mouseClicked(MouseEvent e) {
 			// TODO Auto-generated method stub
-
+			planter.InsertPlant(e.getX(),e.getY());
+			menus.ClickonButton(e.getX(),e.getY());
 		}
 		@Override
 		public void mousePressed(MouseEvent e) {

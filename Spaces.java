@@ -5,10 +5,10 @@ public class Spaces {
 	int yPos;
 	int Width;
 	int Height;
-	String Type;
+	Plants plant;
 
 	public Spaces(GameController game){
-		this(game,0,0,0,0,"");
+		this(game,0,0,0,0,null);
 	}
 	public Spaces(GameController game,
 			int xPos,
@@ -20,7 +20,7 @@ public class Spaces {
 		this.yPos=yPos;
 		this.Width=Width;
 		this.Height=Height;
-		this.Type=Type;
+		this.plant=plant;
 
 	}
 }
