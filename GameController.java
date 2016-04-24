@@ -18,8 +18,9 @@ import javax.swing.WindowConstants;
 public class GameController extends JFrame{
 	Land land;
 	Spaces space;
-	Planter planter;
-	Menu menus;
+	Planter planter = new Planter(this);
+	GameController game = this;
+	Menu menus = new Menu(game);
 	int counter;
 	int MouseX;
 	int MouseY;
@@ -40,6 +41,8 @@ public class GameController extends JFrame{
 		setDefaultCloseOperation(WindowConstants.DISPOSE_ON_CLOSE);
 		MouseMotionListener mouselistener = new MyMouseListener();
 		addMouseMotionListener(mouselistener);
+		MouseListener mouselistener2 = new MyMouseListener2();
+		addMouseListener(mouselistener2);
 		MouseWheelListener Wheel = new MouseWheelEventDemo();
 		addMouseWheelListener(Wheel);
 		setVisible(true);
@@ -61,7 +64,8 @@ public class GameController extends JFrame{
 			System.out.println("HI");
 		}
 		Plants.add(new Plants(this,0,0,0,0, "Blueberry", 0,1000,10,false,false));
-//		menu.add(new Menu(this,100,100,100,20,"BLUEBERRY"));
+		menu.add(new Menu(this,100,100,100,20,0,"BLUEBERRY"));
+		//		menu.add(new Menu(this,100,100,100,20,"BLUEBERRY"));
 	}
 	public void step(){
 		MouseControl(MouseX, MouseY);
@@ -82,7 +86,7 @@ public class GameController extends JFrame{
 
 		}
 		SpacesControl();
-		
+
 	}
 	public void delay (int time){
 		try{
@@ -100,16 +104,19 @@ public class GameController extends JFrame{
 			g.fillRect(Lands.get(0).xPos,Lands.get(0).yPos, Lands.get(0).Width*CELL_SIZE, Lands.get(0).Height*CELL_SIZE);
 		}
 		for(Spaces x : Spaces){
-			g.setColor(new Color(200,100,0));
-			g.fillRect(x.xPos, x.yPos, x.Width, x.Height);
+			if(x.plant==null){
+				g.setColor(new Color(200,100,0));
+				g.fillRect(x.xPos, x.yPos, x.Width, x.Height);
+			}else{
+				g.setColor(new Color (25,200,50));
+				g.drawRect(x.xPos, x.yPos, x.Width, x.Height);
+			}
 			g.setColor(new Color(150,75,0));
 			g.drawRect(x.xPos, x.yPos, x.Width, x.Height);
 		}
-		menu.add(new Menu(this,100,100,100,20,"BLUEBERRY"));
 		for(Menu x : menu){
 			g.setColor(Color.BLUE);
-			g.drawRect(x.xPos, x.yPos, x.Width, x.Height);
-			g.drawString(x.text, x.xPos+10, x.yPos+10);
+			g.fillRect(x.xPos, x.yPos, x.Width, x.Height);
 		}
 		delay(25);
 		step();
@@ -139,7 +146,7 @@ public class GameController extends JFrame{
 			}
 			num++;
 		}
-		
+
 
 	}
 
@@ -186,8 +193,7 @@ public class GameController extends JFrame{
 		@Override
 		public void mouseClicked(MouseEvent e) {
 			// TODO Auto-generated method stub
-			planter.InsertPlant(e.getX(),e.getY());
-			menus.ClickonButton(e.getX(),e.getY());
+			menus.ClickonButton(e.getX(),e.getY(), game);
 		}
 		@Override
 		public void mousePressed(MouseEvent e) {

@@ -1,31 +1,28 @@
 public class Planter {
 	Spaces space;
-	GameController game;
 	int xPos;
 	int yPos;
-	Plants plant;
-
+	GameController game;
 	public Planter(GameController game){
-		this(game,0,0,null);
+		this(game,0,0);
 	}
 	public Planter(GameController game,
 			int xPos,
-			int yPos,
-			Plants plant){
+			int yPos){
 		this.xPos=xPos;
 		this.yPos=yPos;
-		this.plant = plant;
-
 	}
-	public void InsertPlant(int MxPos, int MyPos){
+	public void InsertPlant(int MxPos, int MyPos, GameController game, Plants plant){
 		for(Spaces x : game.Spaces){
-		if((MxPos>=x.xPos&&MxPos<=x.xPos+game.CELL_SIZE)&&(MyPos>=x.yPos&&MyPos<=x.yPos+x.Height)){
-			if(plant!=null){
-				plant.planted=true;
-				x.plant=plant;
+			if((MxPos>=x.xPos&&MxPos<=x.xPos+x.Width*game.CELL_SIZE)&&(MyPos>=x.yPos&&MyPos<=x.yPos+x.Height*game.CELL_SIZE)){
+					if(x.plant==null&&plant!=null){
+						System.out.println("YES PLANT");
+						x.plant=plant;
+						x.plant.planted=true;
+						game.PlantedPlants.add(x.plant);
+					}
+				}
 			}
-		}
-			
+
 		}
 	}
-}
