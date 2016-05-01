@@ -3,6 +3,7 @@ import java.awt.Graphics;
 import java.awt.GraphicsDevice;
 import java.awt.GraphicsEnvironment;
 import java.awt.Window;
+import java.awt.event.KeyEvent;
 import java.awt.event.KeyListener;
 import java.awt.event.MouseEvent;
 import java.awt.event.MouseListener;
@@ -18,19 +19,23 @@ import javax.swing.WindowConstants;
 public class GameController extends JFrame{
 	Land land;
 	Spaces space;
+	Color Brown = new Color(200,100,0);
 	Planter planter = new Planter(this);
 	GameController game = this;
 	Menu menus = new Menu(game);
+	Collector collect = new Collector(this);
 	int counter;
 	int MouseX;
 	int MouseY;
 	int SpaceNum;
 	int CELL_SIZE = 100;
+	String Selected = "";
 	ArrayList<Land> Lands = new ArrayList<>();
 	ArrayList<Spaces> Spaces= new ArrayList<>();
 	ArrayList<Plants> Plants= new ArrayList<>();
 	ArrayList<Menu> menu= new ArrayList<>();
 	ArrayList<Plants> PlantedPlants= new ArrayList<>();
+	ArrayList<Yields> TotalYield= new ArrayList<>();
 
 	public GameController(){
 		initGUI();
@@ -39,6 +44,8 @@ public class GameController extends JFrame{
 	public void initGUI(){
 		System.out.println("GUI");
 		setDefaultCloseOperation(WindowConstants.DISPOSE_ON_CLOSE);
+		KeyListener listener = new MyKeyListener();
+		addKeyListener(listener);
 		MouseMotionListener mouselistener = new MyMouseListener();
 		addMouseMotionListener(mouselistener);
 		MouseListener mouselistener2 = new MyMouseListener2();
@@ -63,7 +70,7 @@ public class GameController extends JFrame{
 			Spaces.add(new Spaces(this,Lands.get(0).xPos+(CELL_SIZE*x),Lands.get(0).yPos+(CELL_SIZE*x),CELL_SIZE-(CELL_SIZE/20),CELL_SIZE-(CELL_SIZE/20),""));
 			System.out.println("HI");
 		}
-		Plants.add(new Plants(this,0,0,0,0, "Blueberry", 0,1000,10,false,false));
+		Plants.add(new Plants(this,0,0,0,0, "Blueberry", 0,30,10,false,false));
 		menu.add(new Menu(this,100,100,100,20,0,"BLUEBERRY"));
 		//		menu.add(new Menu(this,100,100,100,20,"BLUEBERRY"));
 	}
@@ -103,14 +110,23 @@ public class GameController extends JFrame{
 			g.setColor(new Color(25,150,50));
 			g.fillRect(Lands.get(0).xPos,Lands.get(0).yPos, Lands.get(0).Width*CELL_SIZE, Lands.get(0).Height*CELL_SIZE);
 		}
+			for(Yields z : TotalYield){
+				g.setColor(new Color(250,250,250));
+				g.drawString(z.Type + " : " + z.Amount,800, 50);
+			}
+		
 		for(Spaces x : Spaces){
 			if(x.plant==null){
+				//brown
 				g.setColor(new Color(200,100,0));
-				g.fillRect(x.xPos, x.yPos, x.Width, x.Height);
+			}else if(x.plant.Harvestable==true){
+				//yellow
+				g.setColor(new Color (250,250,0));
 			}else{
-				g.setColor(new Color (25,200,50));
-				g.drawRect(x.xPos, x.yPos, x.Width, x.Height);
+				//green
+				g.setColor(new Color(30,100,20));
 			}
+			g.fillRect(x.xPos, x.yPos, x.Width, x.Height);
 			g.setColor(new Color(150,75,0));
 			g.drawRect(x.xPos, x.yPos, x.Width, x.Height);
 		}
@@ -118,15 +134,25 @@ public class GameController extends JFrame{
 			g.setColor(Color.BLUE);
 			g.fillRect(x.xPos, x.yPos, x.Width, x.Height);
 		}
+		if(Selected.equals("Planter")){
+			g.drawString("Planter", 400, 100);
+		}
+		if(Selected.equals("Collector")){
+			g.drawString("Collector", 400, 100);
+		}
 		delay(25);
 		step();
 		repaint();
 	}
 	public void PlantControl(){
-		for(Plants x : PlantedPlants){
-			x.CurrentGrowth+=.1;
-			if(x.CurrentGrowth>=x.GrowthTime){
-				x.Harvestable=true;
+		for(Spaces x : Spaces){
+			if(x.plant!=null&&x.plant.Harvestable==false){
+				x.plant.CurrentGrowth+=.1;
+				System.out.println(x.plant.CurrentGrowth);
+				if(x.plant.CurrentGrowth>=x.plant.GrowthTime){
+					x.plant.Harvestable=true;
+					System.out.print(x.plant.Harvestable);
+				}
 			}
 		}
 	}
@@ -177,6 +203,34 @@ public class GameController extends JFrame{
 			MouseY = e.getY();
 		}
 	}
+	class MyKeyListener implements KeyListener {
+
+		@Override
+		public void keyTyped(KeyEvent e) {
+			// TODO Auto-generated method stub
+
+		}
+
+		@Override
+		public void keyPressed(KeyEvent e) {
+			// TODO Auto-generated method stub
+			switch (e.getKeyCode()){
+			case KeyEvent.VK_P:Selected="Planter";
+			System.out.print("P");
+			break;
+			case KeyEvent.VK_C:Selected="Collector";	
+			System.out.print("C");
+			break;
+			}
+		}
+
+		@Override
+		public void keyReleased(KeyEvent e) {
+			// TODO Auto-generated method stub
+
+		}
+
+	}
 	public class MouseWheelEventDemo implements MouseWheelListener{
 
 		@Override
@@ -194,6 +248,10 @@ public class GameController extends JFrame{
 		public void mouseClicked(MouseEvent e) {
 			// TODO Auto-generated method stub
 			menus.ClickonButton(e.getX(),e.getY(), game);
+			if(Selected == "Collector"){
+			collect.CollectPlant(e.getX(), e.getY(), game);
+			}
+
 		}
 		@Override
 		public void mousePressed(MouseEvent e) {

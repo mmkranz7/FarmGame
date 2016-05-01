@@ -12,7 +12,7 @@ public class Plants {
 	boolean planted;
 
 	public Plants(GameController game){
-		this(game,0,0,0,0,"",0,0,0,false,false);
+		this(game,0,0,0,0,"",0,30,0,false,false);
 	}
 	public Plants(GameController game,
 			int xPos,

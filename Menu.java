@@ -30,14 +30,16 @@ public class Menu {
 	public void ClickonButton(int MxPos, int MyPos, GameController game){
 		Plants plant = new Plants(game);
 		for(Menu x : game.menu){
-		if((MxPos>=x.xPos&&MxPos<=x.xPos+x.Width)&&(MyPos>=x.yPos&&MyPos<=x.yPos+x.Height)){
-			System.out.println("MENUSA");
-			plant=game.Plants.get(x.plantnum);
+			if((MxPos>=x.xPos&&MxPos<=x.xPos+x.Width)&&(MyPos>=x.yPos&&MyPos<=x.yPos+x.Height)){
+				plant=game.Plants.get(x.plantnum);
+				
+				
 			}
-		if(plant!=null){
-			planter.InsertPlant(MxPos, MyPos, game,plant);
+			if(plant!=null&&game.Selected.equals("Planter")){
+				System.out.println(plant.Type);
+				planter.InsertPlant(MxPos, MyPos, game,plant);
+			}
 		}
-		}
-			
-		}
+
 	}
+}
