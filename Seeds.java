@@ -3,14 +3,14 @@ import java.awt.Image;
 import java.awt.Rectangle;
 
 
-public class Yields {
+public class Seeds {
 	GameController game;
 	int Amount;
 	String Type;
-	public Yields(GameController game){
+	public Seeds(GameController game){
 		this(game,0,"");
 	}
-	public Yields(GameController game,
+	public Seeds(GameController game,
 			int Amount,
 			String Type){
 		this.Amount=Amount;

@@ -10,8 +10,12 @@ import java.awt.event.MouseListener;
 import java.awt.event.MouseMotionListener;
 import java.awt.event.MouseWheelEvent;
 import java.awt.event.MouseWheelListener;
+import java.awt.image.BufferedImage;
+import java.io.File;
+import java.io.IOException;
 import java.util.ArrayList;
 
+import javax.imageio.ImageIO;
 import javax.swing.JFrame;
 import javax.swing.WindowConstants;
 
@@ -29,6 +33,9 @@ public class GameController extends JFrame{
 	int MouseY;
 	int SpaceNum;
 	int CELL_SIZE = 100;
+	int starttime;
+	int endtime=100;
+	boolean noSeeds=false;
 	String Selected = "";
 	ArrayList<Land> Lands = new ArrayList<>();
 	ArrayList<Spaces> Spaces= new ArrayList<>();
@@ -36,7 +43,11 @@ public class GameController extends JFrame{
 	ArrayList<Menu> menu= new ArrayList<>();
 	ArrayList<Plants> PlantedPlants= new ArrayList<>();
 	ArrayList<Yields> TotalYield= new ArrayList<>();
-
+	ArrayList<Seeds> seeds= new ArrayList<>();
+	Plants selectedPlant;
+	BufferedImage FullBLUEBERRY;
+	BufferedImage onethirdBLUEBERRY;
+	BufferedImage twothirdBLUEBERRY;
 	public GameController(){
 		initGUI();
 	}
@@ -55,6 +66,12 @@ public class GameController extends JFrame{
 		setVisible(true);
 		setSize(1000,1000);
 		initObj();
+		try{
+			FullBLUEBERRY = ImageIO.read(new File("FullBLUEBERRY.jpg"));
+			onethirdBLUEBERRY = ImageIO.read(new File("onethirdBLUEBERRY.jpg"));
+			twothirdBLUEBERRY = ImageIO.read(new File("twothirdBLUEBERRY.jpg"));
+		}catch(IOException e){
+		}
 	}
 	public void initObj(){
 		System.out.println("Obj");
@@ -70,9 +87,9 @@ public class GameController extends JFrame{
 			Spaces.add(new Spaces(this,Lands.get(0).xPos+(CELL_SIZE*x),Lands.get(0).yPos+(CELL_SIZE*x),CELL_SIZE-(CELL_SIZE/20),CELL_SIZE-(CELL_SIZE/20),""));
 			System.out.println("HI");
 		}
-		Plants.add(new Plants(this,0,0,0,0, "Blueberry", 0,30,10,false,false));
+		Plants.add(new Plants(this,0,0,0,0, "BLUEBERRY", 0,30,10,false,false));
 		menu.add(new Menu(this,100,100,100,20,0,"BLUEBERRY"));
-		//		menu.add(new Menu(this,100,100,100,20,"BLUEBERRY"));
+		seeds.add(new Seeds(this,10,"BLUEBERRY"));
 	}
 	public void step(){
 		MouseControl(MouseX, MouseY);
@@ -90,7 +107,12 @@ public class GameController extends JFrame{
 			x.yPos=Lands.get(0).yPos;
 			x.Height = CELL_SIZE;
 			x.Width = CELL_SIZE;
-
+		}
+		if(noSeeds==true){
+			starttime++;
+			if(starttime>=endtime){
+				noSeeds=false;
+			}
 		}
 		SpacesControl();
 
@@ -114,21 +136,34 @@ public class GameController extends JFrame{
 				g.setColor(new Color(250,250,250));
 				g.drawString(z.Type + " : " + z.Amount,800, 50);
 			}
-		
+			for(Seeds c : seeds){
+				g.setColor(new Color(250,250,250));
+				g.drawString(c.Type + " : " +c.Amount,800, 75);
+			}
+		if(noSeeds==true){
+			g.setColor(Color.red);
+			g.drawString("NO SEEDS",500,500);
+		}
 		for(Spaces x : Spaces){
 			if(x.plant==null){
 				//brown
 				g.setColor(new Color(200,100,0));
+				g.fillRect(x.xPos, x.yPos, x.Width, x.Height);
+				g.setColor(new Color(150,75,0));
+				g.drawRect(x.xPos, x.yPos, x.Width, x.Height);
 			}else if(x.plant.Harvestable==true){
-				//yellow
-				g.setColor(new Color (250,250,0));
-			}else{
-				//green
-				g.setColor(new Color(30,100,20));
+				
+				g.drawImage(FullBLUEBERRY,x.xPos,x.yPos,x.Width,x.Height, null);
+				
+			}else if(x.plant.CurrentGrowth/x.plant.GrowthTime>=(1.0/3.0)&&x.plant.CurrentGrowth/x.plant.GrowthTime<(2.0/3.0)){
+				
+				g.drawImage(onethirdBLUEBERRY,x.xPos,x.yPos,x.Width,x.Height, null);
+				
+			}else if(x.plant.CurrentGrowth/x.plant.GrowthTime>=(2.0/3.0)&&x.plant.CurrentGrowth/x.plant.GrowthTime<(1.0)){
+				
+				g.drawImage(twothirdBLUEBERRY,x.xPos,x.yPos,x.Width,x.Height, null);
+				
 			}
-			g.fillRect(x.xPos, x.yPos, x.Width, x.Height);
-			g.setColor(new Color(150,75,0));
-			g.drawRect(x.xPos, x.yPos, x.Width, x.Height);
 		}
 		for(Menu x : menu){
 			g.setColor(Color.BLUE);
@@ -251,7 +286,10 @@ public class GameController extends JFrame{
 			if(Selected == "Collector"){
 			collect.CollectPlant(e.getX(), e.getY(), game);
 			}
-
+			if(Selected == "Planter"){
+			planter.InsertPlant(e.getX(), e.getY(), game, selectedPlant);
+			
+			}
 		}
 		@Override
 		public void mousePressed(MouseEvent e) {
