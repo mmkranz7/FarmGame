@@ -18,17 +18,20 @@ public class Planter {
 		for(Spaces x : game.Spaces){
 			if((MxPos>=x.xPos&&MxPos<=x.xPos+x.Width)
 					&&(MyPos>=x.yPos&&MyPos<=x.yPos+x.Height)){
-				if(x.plant==null&&plant!=null){
-					x.plant=plant.Clone(plant);
+				if(plant!=null){
 					for(Seeds t : game.seeds){
-						if(t.Type==x.plant.Type&&t.Amount>=0){
-							t.Amount--;
-						}else{
-							seedallow=false;
-							game.noSeeds=true;
+						if(x.plant==null){
+							if(t.Type==plant.Type&&t.Amount>0){
+								t.Amount--;
+							}else{
+								seedallow=false;
+								game.noSeeds=true;
+
+							}
 						}
 					}
-					if(seedallow==true){
+					if(seedallow&&x.plant==null){
+						x.plant=plant.Clone(plant);
 						System.out.println("YES PLANT");
 						System.out.println(plant.Type);
 						x.plant.planted=true;
