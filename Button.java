@@ -44,7 +44,7 @@ public class Button {
 		for(Button x : game.buttons){
 			if(x.Type.equals("DimTele")){
 				System.out.println("BEFORE CHECKING IF INSIDE");
-				if((MxPos>=x.xPos-5&&MxPos<=x.xPos-5+x.Width+10)&&(MyPos>=x.yPos-5&&MyPos<=x.yPos-5+x.Height+10)){
+				if(game.IsIntersect(MxPos,MyPos,x.xPos,x.yPos,x.Width,x.Height)){
 					System.out.println("AFTER CHECKING IF INSIDE");
 					if(x.Name.equals("ToShop")&&game.Dimension=="Farm"){
 						System.out.print("SUCESS");
@@ -57,8 +57,22 @@ public class Button {
 					}
 				}
 			}
-			if(Type.equals("Purchase")){
-				
+			if(x.Type.equals("Purchase")){
+				if(x.Name.equals("BuyLand")){
+					if(game.IsIntersect(MxPos,MyPos,x.xPos,x.yPos,x.Width,x.Height)){
+							int r=game.Lands.get(0).Size;
+							if(game.TotalMoney>=(40*Math.sqrt(r)*2+1)){
+								r+= Math.sqrt(r)*2+1;
+								game.Lands.get(0).Size=r;
+								game.Lands.get(0).openSpaces=r;
+								for(int z =0; z<Math.sqrt(r)*2-1;  z++){
+									game.Spaces.add(new Spaces(game,game.Lands.get(0).xPos+(game.CELL_SIZE*z),game.Lands.get(0).yPos+(game.CELL_SIZE*z),game.CELL_SIZE-(game.CELL_SIZE/20),game.CELL_SIZE-(game.CELL_SIZE/20),""));
+									System.out.println("HI");
+								}
+						}
+					}
+
+				}
 			}
 		}
 	}

@@ -16,8 +16,7 @@ public class Planter {
 		System.out.println(plant.Type);
 		boolean seedallow=true;
 		for(Spaces x : game.Spaces){
-			if((MxPos>=x.xPos&&MxPos<=x.xPos+x.Width)
-					&&(MyPos>=x.yPos&&MyPos<=x.yPos+x.Height)){
+			if(game.IsIntersect(MxPos,MyPos,x.xPos,x.yPos,x.Width,x.Height)){
 				if(plant!=null){
 					for(Seeds t : game.seeds){
 						if(x.plant==null){

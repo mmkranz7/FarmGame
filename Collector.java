@@ -14,8 +14,7 @@ public class Collector {
 	}
 	public void CollectPlant(int MxPos, int MyPos, GameController game){
 		for(Spaces x : game.Spaces){
-			if((MxPos>=x.xPos&&MxPos<=x.xPos+x.Width)
-					&&(MyPos>=x.yPos&&MyPos<=x.yPos+x.Height)){
+			if(game.IsIntersect(MxPos,MyPos,x.xPos,x.yPos,x.Width,x.Height)){
 				if(x.plant.Harvestable==true){
 					System.out.println("Harvested Plant");
 					int Plantnum = 0;
