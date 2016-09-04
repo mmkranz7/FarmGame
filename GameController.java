@@ -4,6 +4,7 @@ import java.awt.image.BufferStrategy;
 import java.awt.Graphics2D;
 import java.awt.GraphicsDevice;
 import java.awt.GraphicsEnvironment;
+import java.awt.Image;
 import java.awt.Window;
 import java.awt.event.KeyEvent;
 import java.awt.event.KeyListener;
@@ -25,6 +26,7 @@ import javax.swing.WindowConstants;
 public class GameController extends JFrame{
 	Land land;
 	Spaces space;
+	DragBox dBox;
 	BufferStrategy bs;
 	Color Brown = new Color(200,100,0);
 	Planter planter = new Planter(this);
@@ -35,6 +37,7 @@ public class GameController extends JFrame{
 	int counter;
 	int MouseX;
 	int MouseY;
+	boolean complete=false;
 	int TotalMoney = 10000;
 	int SpaceNum;
 	int CELL_SIZE = 100;
@@ -43,6 +46,10 @@ public class GameController extends JFrame{
 	boolean noSeeds=false;
 	int start=0;
 	int end=100;
+	private Image bufferImage;
+	private Graphics bufferGraphics;
+	private int bufferWidth;
+	private int bufferHeight;
 	String Dimension = "Farm";
 	boolean stopload=false;
 	String Selected = "";
@@ -54,22 +61,32 @@ public class GameController extends JFrame{
 	ArrayList<Plants> PlantedPlants= new ArrayList<>();
 	ArrayList<Yields> TotalYield= new ArrayList<>();
 	ArrayList<Seeds> seeds= new ArrayList<>();
+	ArrayList<DragBox> DragBoxes= new ArrayList<>();
 	Plants selectedPlant;
 	BufferedImage FullBLUEBERRY;
 	BufferedImage Shop;
 	BufferedImage Farm;
+	BufferedImage SellThings;
 	BufferedImage MoreLand;
 	BufferedImage onethirdBLUEBERRY;
 	BufferedImage twothirdBLUEBERRY;
 	public GameController(){
-		initGUI();
-		createBufferStrategy(2);
-	    bs = this.getBufferStrategy();
+		 super("FrameDemo");
+//	        addWindowListener(this);	
+	        setDefaultCloseOperation(JFrame.DO_NOTHING_ON_CLOSE);
+	        setExtendedState(JFrame.MAXIMIZED_BOTH); 
+	        setUndecorated(true);
+	        setSize(1000, 1000);
+	        setResizable(true);
+	        setVisible(true);
+
+//	        createBufferStrategy(2);
+			initGUI();
+//	       
 	}
 
 	public void initGUI(){
 		System.out.println("GUI");
-		setDefaultCloseOperation(WindowConstants.DISPOSE_ON_CLOSE);
 		KeyListener listener = new MyKeyListener();
 		addKeyListener(listener);
 		MouseMotionListener mouselistener = new MyMouseListener();
@@ -78,13 +95,18 @@ public class GameController extends JFrame{
 		addMouseListener(mouselistener2);
 		MouseWheelListener Wheel = new MouseWheelEventDemo();
 		addMouseWheelListener(Wheel);
-		setVisible(true);
-		setSize(1000,1000);
+//		 BufferStrategy bs = this.getBufferStrategy(); 
+//	        if (bs == null) {
+//	               this.createBufferStrategy(3); 
+//	               bs = this.getBufferStrategy(); 
+//	        }
+//		
 		try{
 			FullBLUEBERRY = ImageIO.read(new File("FullBLUEBERRY.jpg"));
 			Shop = ImageIO.read(new File("Shop.jpg"));
 			Farm = ImageIO.read(new File("Farm.jpg"));
 			MoreLand = ImageIO.read(new File("MoreLand.jpg"));
+			SellThings = ImageIO.read(new File("SellThings.jpg"));
 			onethirdBLUEBERRY = ImageIO.read(new File("onethirdBLUEBERRY.jpg"));
 			twothirdBLUEBERRY = ImageIO.read(new File("twothirdBLUEBERRY.jpg"));
 		}catch(IOException e){
@@ -92,7 +114,7 @@ public class GameController extends JFrame{
 		initObj();
 	}
 	public boolean IsIntersect(int MxPos, int MyPos,int xPos, int yPos, int Width, int Height){
-		if((MxPos>=xPos-5&&MxPos<=xPos-5+Width+10)&&(MyPos>=yPos-5&&MyPos<=yPos-5+Height+10)){
+		if((MxPos>=xPos&&MxPos<=xPos+Width)&&(MyPos>=yPos&&MyPos<=yPos+Height)){
 			return true;
 		}
 		return false;
@@ -118,13 +140,17 @@ public class GameController extends JFrame{
 		Plants.add(new Plants(this,0,0,0,0, "BLUEBERRY", 0,30,10,false,false));
 		menu.add(new Menu(this,100,100,100,20,0,"BLUEBERRY"));
 		seeds.add(new Seeds(this,10,"BLUEBERRY"));
-		buttons.add(new Button(this,5, 25, 50, 50,Color.orange, "ToShop","DimTele","Farm",Shop));
-		buttons.add(new Button(this,5, 25, 50, 50,Color.orange, "ToFarm","DimTele","Shop",Farm));
-		buttons.add(new Button(this,200, 400, 50, 50,Color.orange, "BuyLand","Purchase","Shop",MoreLand));
+		buttons.add(new Button(this,5, 25, 50, 50,Color.orange, "ToShop","DimTele","Farm",Shop,0));
+		buttons.add(new Button(this,5, 25, 50, 50,Color.orange, "ToFarm","DimTele","Shop",Farm,0));
+		buttons.add(new Button(this,200, 400, 50, 50,Color.orange, "BuyLand","Purchase","Shop",MoreLand,0));
+		buttons.add(new Button(this,275, 400, 50, 50,Color.orange, "SellStuff","Purchase","Shop",SellThings,0));
 	}
 	public void step(){
 		MouseControl(MouseX, MouseY);
 		PlantControl();
+		if(DragBoxes.size()==1){
+			System.out.println("RAN DRAG");
+		}
 		if(Lands.get(0).Size==2){
 			Lands.get(0).Width=1;
 			Lands.get(0).Height=2;
@@ -151,6 +177,9 @@ public class GameController extends JFrame{
 	}
 	public void ButtonDraw(Graphics g, Button button){
 		g.setColor(button.boxColor);
+		if(button.price!=0){
+			g.drawString(((Integer)button.price).toString() , button.xPos, button.yPos+button.Height/2);
+		}
 		g.fillRect(button.xPos-5,button.yPos-5,button.Width+10,button.Height+10);
 		g.drawImage(button.Image, button.xPos, button.yPos, button.Width, button.Height, null);
 	}
@@ -163,115 +192,197 @@ public class GameController extends JFrame{
 		//makes it appear more smooth
 	}
 	public void paint(Graphics g){
-		Graphics2D g2=null;
-		do {
-		    try{
-		        g2 = (Graphics2D) bs.getDrawGraphics();
-		        drawWhatEver(g2);
-		    } finally {
-		           g2.dispose();
-		    }
-		    bs.show();
-		} while (bs.contentsLost());
+		if(bufferWidth!=getSize().width ||
+			      bufferHeight!=getSize().height ||
+			      bufferImage==null || bufferGraphics==null){
+			      resetBuffer();
+		}
+		update(g);
+		step();
+		repaint();
+		}
+	public void update(Graphics g){
+	       resetBuffer();
+
+	    if(bufferGraphics!=null){
+	        //this clears the offscreen image, not the onscreen one
+	        bufferGraphics.clearRect(0,0,bufferWidth,bufferHeight);
+
+	        //calls the paintbuffer method with 
+	        //the offscreen graphics as a param
+	        paintBuffer(bufferGraphics);
+
+	        //we finaly paint the offscreen image onto the onscreen image
+	        g.drawImage(bufferImage,0,0,this);
+	    }
 	}
-		private void drawWhatEver(Graphics2D g2){
-			g2.drawImage(FullBLUEBERRY,10000,10000,50,50, null);
-			g2.drawImage(onethirdBLUEBERRY,10000,10000,50,50, null);
-			g2.drawImage(twothirdBLUEBERRY,10000,10000,50,50, null);
-			g2.drawImage(Shop,10000,10000,50,50, null);
-			g2.drawImage(Farm,10000,10000,50,50, null);
-			g2.setColor(Color.gray);
-			g2.fillRect(0, 0, 10000,10000);
+	
+		private void resetBuffer(){
+		    // always keep track of the image size
+		    bufferWidth=getSize().width;
+		    bufferHeight=getSize().height;
+
+		    //    clean up the previous image
+		    if(bufferGraphics!=null){
+		        bufferGraphics.dispose();
+		        bufferGraphics=null;
+		    }
+		    if(bufferImage!=null){
+		        bufferImage.flush();
+		        bufferImage=null;
+		    }
+		    System.gc();
+
+		    //    create the new image with the size of the panel
+		    bufferImage=createImage(bufferWidth,bufferHeight);
+		    bufferGraphics=bufferImage.getGraphics();
+		}
+//			}
+//		 public void update(Graphics g) {
+//			    Graphics offgc;
+//			    Image offscreen = null;
+//			    Dimension d = size();
+//
+//			    // create the offscreen buffer and associated Graphics
+//			    offscreen = createImage(d.width, d.height);
+//			    offgc = offscreen.getGraphics();
+//			    // clear the exposed area
+//			    offgc.setColor(getBackground());
+//			    offgc.fillRect(0, 0, d.width, d.height);
+//			    offgc.setColor(getForeground());
+//			    // do normal redraw
+//			    drawWhatEver(offgc);
+//			    // transfer offscreen to window
+//			    g.drawImage(offscreen, 0, 0, this);
+//			    }
+////		BufferStrategy bs = this.getBufferStrategy(); 
+////        if (bs == null) {
+////               this.createBufferStrategy(3); 
+////               bs = this.getBufferStrategy(); 
+////        }
+////	
+////		Graphics2D g = null;
+////		do {
+////		    try{
+////		        System.out.println(bs);
+////		        g = (Graphics2D) bs.getDrawGraphics() ;
+//
+//		
+//	}
+		private void paintBuffer(Graphics g){
+			g.drawImage(FullBLUEBERRY,10000,10000,50,50, null);
+			g.drawImage(onethirdBLUEBERRY,10000,10000,50,50, null);
+			g.drawImage(twothirdBLUEBERRY,10000,10000,50,50, null);
+			g.drawImage(Shop,10000,10000,50,50, null);
+			g.drawImage(Farm,10000,10000,50,50, null);
+			g.setColor(Color.gray);
+			g.fillRect(0, 0, 10000,10000);
 			if(Dimension=="Farm"){
 				if (Lands.size() > 0) {
-					g2.setColor(new Color(25,150,50));
-					g2.fillRect(Lands.get(0).xPos,Lands.get(0).yPos, Lands.get(0).Width*CELL_SIZE, Lands.get(0).Height*CELL_SIZE);
+					g.setColor(new Color(25,150,50));
+					g.fillRect(Lands.get(0).xPos,Lands.get(0).yPos, Lands.get(0).Width*CELL_SIZE, Lands.get(0).Height*CELL_SIZE);
 				}
-				for(Yields z : TotalYield){
-					g2.setColor(new Color(250,250,250));
-					g2.drawString(z.Type + " : " + z.Amount,800, 50);
-				}
-				for(Seeds c : seeds){
-					g2.setColor(new Color(250,250,250));
-					g2.drawString(c.Type + " seeds : " +c.Amount,800, 75);
-				}
-				g2.drawString("Money :"+ TotalMoney,800,100);
 				for(Spaces x : Spaces){
 					if(x.plant==null){
 						//brown
-						g2.setColor(new Color(200,100,0));
-						g2.fillRect(x.xPos, x.yPos, x.Width, x.Height);
-						g2.setColor(new Color(150,75,0));
-						g2.drawRect(x.xPos, x.yPos, x.Width, x.Height);
+						g.setColor(new Color(200,100,0));
+						g.fillRect(x.xPos, x.yPos, x.Width, x.Height);
+						g.setColor(new Color(150,75,0));
+						g.drawRect(x.xPos, x.yPos, x.Width, x.Height);
 					}else if(x.plant.Harvestable==true){
 
-						g2.drawImage(FullBLUEBERRY,x.xPos,x.yPos,x.Width,x.Height, null);
+						g.drawImage(FullBLUEBERRY,x.xPos,x.yPos,x.Width,x.Height, null);
 
 					}else if(x.plant.CurrentGrowth/x.plant.GrowthTime>=(1.0/3.0)&&x.plant.CurrentGrowth/x.plant.GrowthTime<(2.0/3.0)){
 
-						g2.drawImage(onethirdBLUEBERRY,x.xPos,x.yPos,x.Width,x.Height, null);
+						g.drawImage(onethirdBLUEBERRY,x.xPos,x.yPos,x.Width,x.Height, null);
 
 					}else if(x.plant.CurrentGrowth/x.plant.GrowthTime>=(2.0/3.0)&&x.plant.CurrentGrowth/x.plant.GrowthTime<(1.0)){
 
-						g2.drawImage(twothirdBLUEBERRY,x.xPos,x.yPos,x.Width,x.Height, null);
+						g.drawImage(twothirdBLUEBERRY,x.xPos,x.yPos,x.Width,x.Height, null);
 
 					}
 				}
 				for(Menu x : menu){
-					g2.setColor(Color.BLUE);
-					g2.fillRect(x.xPos, x.yPos, x.Width, x.Height);
+					g.setColor(Color.BLUE);
+					g.fillRect(x.xPos, x.yPos, x.Width, x.Height);
+				}
+				for(DragBox x : DragBoxes){
+					System.out.println("PAINTED");
+					g.setColor(Color.BLUE);
+					g.fillRect(x.OriX, x.OriY, x.Width, x.Height);
 				}
 				if(noSeeds==true){
-					g2.setColor(Color.WHITE);
-					g2.fillRect(475, 475, 120, 40);
-					g2.setColor(Color.BLACK);
-					g2.drawRect(475, 475, 120, 40);
-					g2.setColor(Color.red);
-					g2.drawString("NO SEEDS",500,500);
+					g.setColor(Color.WHITE);
+					g.fillRect(475, 475, 120, 40);
+					g.setColor(Color.BLACK);
+					g.drawRect(475, 475, 120, 40);
+					g.setColor(Color.red);
+					g.drawString("NO SEEDS",500,500);
 
 				}
 				if(Selected.equals("Planter")){
-					g2.setColor(Color.WHITE);
-					g2.fillRect(375, 75, 120, 40);
-					g2.setColor(Color.BLACK);
-					g2.drawRect(375, 75, 120, 40);
-					g2.setColor(Color.BLACK);
-					g2.drawString("Planter", 400, 100);
+					g.setColor(Color.WHITE);
+					g.fillRect(375, 75, 120, 40);
+					g.setColor(Color.BLACK);
+					g.drawRect(375, 75, 120, 40);
+					g.setColor(Color.BLACK);
+					g.drawString("Planter", 400, 100);
 				}
 				if(Selected.equals("Collector")){
-					g2.setColor(Color.WHITE);
-					g2.fillRect(375, 75, 120, 40);
-					g2.setColor(Color.BLACK);
-					g2.drawRect(375, 75, 120, 40);
-					g2.setColor(Color.BLACK);
-					g2.drawString("Collector", 400, 100);
+					g.setColor(Color.WHITE);
+					g.fillRect(375, 75, 120, 40);
+					g.setColor(Color.BLACK);
+					g.drawRect(375, 75, 120, 40);
+					g.setColor(Color.BLACK);
+					g.drawString("Collector", 400, 100);
 				}
 				for(Button x : buttons){
 					if(x.Dim.equals("Farm")){
-						ButtonDraw(g2,x);
+						ButtonDraw(g,x);
 					}
 				}
 			}
 			if(Dimension=="Shop"){
-				g2.setColor(Color.gray);
-				g2.fillRect(0, 0, 10000, 100000);
+				g.setColor(Color.gray);
+				g.fillRect(0, 0, 10000, 100000);
 				for(Button x : buttons){
 					if(x.Dim.equals("Shop")){
-						ButtonDraw(g2,x);
+						ButtonDraw(g,x);
 					}
 				}
 				
 			}
-			if(start>=end){
-				stopload=true;
+			for(Yields z : TotalYield){
+				g.setColor(new Color(250,250,250));
+				g.drawString(z.Type + " : " + z.Amount,800, 50);
 			}
-			if(!stopload){
-				start++;
-				g2.setColor(Color.BLACK);
-				g2.fillRect(0, 0, 10000, 10000);
-				g2.setColor(Color.white);
-				g2.drawString("LOADING", 500, 500);
+			for(Seeds c : seeds){
+				g.setColor(new Color(250,250,250));
+				g.drawString(c.Type + " seeds : " +c.Amount,800, 75);
 			}
+			g.drawString("Money :"+ TotalMoney,800,100);
+//			if(start>=end){
+//				stopload=true;
+//			}
+//			if(!stopload){
+//				start++;
+//				g.setColor(Color.BLACK);
+//				g.fillRect(0, 0, 10000, 10000);
+//				g.setColor(Color.white);
+//				g.drawString("LOADING", 500, 500);
+//			}
+//	        		bs.getDrawGraphics();
+//			        complete=true;
+//			    } finally{
+//				    if(complete) {
+//				           g.dispose();
+//				           complete=false;
+//				    }
+//			    }
+//			    bs.show();
+//			} while (bs.contentsLost());
+//			update(g);
 		   }
 	
 	public void PlantControl(){
@@ -325,11 +436,13 @@ public class GameController extends JFrame{
 		@Override
 		public void mouseDragged(MouseEvent e) {
 			// TODO Auto-generated method stub
-
 		}
 		@Override
 		public void mouseMoved(MouseEvent e) {
 			// TODO Auto-generated method stub
+			if(DragBoxes.size()==1){
+				DragBoxes.get(0).Drag(e.getX(),e.getY(),game);
+			}
 			MouseX=e.getX();
 			MouseY = e.getY();
 		}
@@ -378,6 +491,8 @@ public class GameController extends JFrame{
 		@Override
 		public void mouseClicked(MouseEvent e) {
 			// TODO Auto-generated method stub
+			System.out.println(DragBoxes.size());
+			System.out.println(DragBoxes.size());
 			menus.ClickonButton(e.getX(),e.getY(), game);
 			but.ClickedOn(e.getX(), e.getY(), game);
 			if(Selected == "Collector"){
@@ -390,13 +505,19 @@ public class GameController extends JFrame{
 		}
 		@Override
 		public void mousePressed(MouseEvent e) {
+			System.out.println("ADDED");
+			DragBoxes.add(new DragBox(game,e.getX(),e.getY(),e.getX(),e.getY(),0,0,true));
 			// TODO Auto-generated method stub
 
 		}
 		@Override
 		public void mouseReleased(MouseEvent e) {
 			// TODO Auto-generated method stub
-
+			if(DragBoxes.size()>=1){
+				System.out.println("REMOVED");
+			DragBoxes.get(0).Clicked=false;
+			DragBoxes.clear();
+			}
 		}
 
 		public void mouseEntered(MouseEvent e) {
