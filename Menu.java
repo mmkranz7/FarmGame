@@ -32,7 +32,7 @@ public class Menu {
 		for(Menu x : game.menu){
 			System.out.println(plant.Type);
 			
-			if((MxPos>=x.xPos&&MxPos<=x.xPos+x.Width)&&(MyPos>=x.yPos&&MyPos<=x.yPos+x.Height)){
+			if(game.IsIntersect(MxPos,MyPos,x.xPos,x.yPos,x.Width,x.Height)){
 				plant= plant.Clone(game.Plants.get(x.plantnum));
 				System.out.println(plant.Type);
 				game.selectedPlant= plant;

@@ -32,6 +32,13 @@ public class GameController extends JFrame{
 	Planter planter = new Planter(this);
 	GameController game = this;
 	Menu menus = new Menu(game);
+	BufferedImage FullBLUEBERRY;
+	BufferedImage Shop;
+	BufferedImage Farm;
+	BufferedImage SellThings;
+	BufferedImage MoreLand;
+	BufferedImage onethirdBLUEBERRY;
+	BufferedImage twothirdBLUEBERRY;
 	Button but = new Button(game);
 	Collector collect = new Collector(this);
 	int counter;
@@ -63,13 +70,6 @@ public class GameController extends JFrame{
 	ArrayList<Seeds> seeds= new ArrayList<>();
 	ArrayList<DragBox> DragBoxes= new ArrayList<>();
 	Plants selectedPlant;
-	BufferedImage FullBLUEBERRY;
-	BufferedImage Shop;
-	BufferedImage Farm;
-	BufferedImage SellThings;
-	BufferedImage MoreLand;
-	BufferedImage onethirdBLUEBERRY;
-	BufferedImage twothirdBLUEBERRY;
 	public GameController(){
 		 super("FrameDemo");
 //	        addWindowListener(this);	
@@ -140,10 +140,10 @@ public class GameController extends JFrame{
 		Plants.add(new Plants(this,0,0,0,0, "BLUEBERRY", 0,30,10,false,false));
 		menu.add(new Menu(this,100,100,100,20,0,"BLUEBERRY"));
 		seeds.add(new Seeds(this,10,"BLUEBERRY"));
-		buttons.add(new Button(this,5, 25, 50, 50,Color.orange, "ToShop","DimTele","Farm",Shop,0));
-		buttons.add(new Button(this,5, 25, 50, 50,Color.orange, "ToFarm","DimTele","Shop",Farm,0));
-		buttons.add(new Button(this,200, 400, 50, 50,Color.orange, "BuyLand","Purchase","Shop",MoreLand,0));
-		buttons.add(new Button(this,275, 400, 50, 50,Color.orange, "SellStuff","Purchase","Shop",SellThings,0));
+		buttons.add(but.DimButtonToShop);
+		buttons.add(but.DimButtonsToFarm);
+		buttons.add(but.PurchaseButtons);
+		buttons.add(but.SellButtons);
 	}
 	public void step(){
 		MouseControl(MouseX, MouseY);
@@ -181,7 +181,7 @@ public class GameController extends JFrame{
 			g.drawString(((Integer)button.price).toString() , button.xPos, button.yPos+button.Height/2);
 		}
 		g.fillRect(button.xPos-5,button.yPos-5,button.Width+10,button.Height+10);
-		g.drawImage(button.Image, button.xPos, button.yPos, button.Width, button.Height, null);
+		g.drawImage(button.getImage(), button.xPos, button.yPos, button.Width, button.Height, null);
 	}
 	public void delay (int time){
 		try{
