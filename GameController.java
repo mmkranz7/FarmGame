@@ -51,6 +51,8 @@ public class GameController extends JFrame{
 	int starttime;
 	int endtime=100;
 	boolean noSeeds=false;
+	boolean nothingToCollect=false;
+	boolean noSeedSelected=false;
 	int start=0;
 	int end=100;
 	private Image bufferImage;
@@ -70,6 +72,88 @@ public class GameController extends JFrame{
 	ArrayList<Seeds> seeds= new ArrayList<>();
 	ArrayList<DragBox> DragBoxes= new ArrayList<>();
 	Plants selectedPlant;
+	Button DimButtonsToFarm = new Button(game,5, 25, 50, 50,Color.orange, "ToFarm","DimTele","Shop",0){
+		public BufferedImage getImage(){
+			return game.Farm;
+		}
+		@Override
+		public boolean ClickButton(Button x){
+			if(x.Type.equals("DimTele")){
+			System.out.println("AFTER CHECKING IF INSIDE");
+				if(x.Name.equals("ToFarm")&&game.Dimension=="Shop"){
+					game.Dimension="Farm";
+					return true;
+				}
+			}
+			return false;
+		}
+	};
+	
+	
+	Button DimButtonToShop = new Button(game,5, 25, 50, 50,Color.orange, "ToShop","DimTele","Farm",0){
+		public BufferedImage getImage(){
+			return game.Shop;
+		}
+		@Override
+		public boolean ClickButton(Button x){
+			if(x.Type.equals("DimTele")){
+			System.out.println("AFTER CHECKING IF INSIDE");
+				if(x.Name.equals("ToShop")&&game.Dimension=="Farm"){
+					System.out.print("SUCESS");
+						game.Dimension="Shop";
+						return true;
+					}
+			}
+			return false;
+		}
+	};
+	Button SellButtons = new Button(game,275, 400, 50, 50,Color.orange, "SellStuff","Purchase","Shop",0){
+		public BufferedImage getImage(){
+			return game.SellThings;
+		}
+		@Override
+		public boolean ClickButton(Button x){
+			if(x.Name.equals("SellStuff")){
+			for(Yields z : game.TotalYield){
+				if(z.Type=="BLUEBERRY"){
+					for(int i=0; i<z.Amount;i++){
+						game.TotalMoney+=5;
+					}
+					z.Amount=0;
+				}
+			}
+			}
+			return false;
+		}
+	};
+	Button PurchaseButtons = new Button(game,200, 400, 50, 50,Color.orange, "BuyLand","Purchase","Shop",0){
+		public BufferedImage getImage(){
+			return game.MoreLand;
+		}
+		@Override
+		public boolean ClickButton(Button x){
+			if(x.Type.equals("Purchase")&&game.Dimension.equals("Shop")){
+				if(x.Name.equals("BuyLand")){
+					BuyLand(x);
+				}
+			}
+			return false;
+		}
+		public void BuyLand(Button x){
+			int r=game.Lands.get(0).Size;
+			x.price=(int) (40*Math.sqrt(r)*2+1);
+			if(game.TotalMoney>=x.price){
+				game.TotalMoney-=x.price;
+				r+= Math.sqrt(r)*2+1;
+				game.Lands.get(0).Size=r;
+				game.Lands.get(0).openSpaces=r;
+				for(int z =0; z<Math.sqrt(r)*2-1;  z++){
+					game.Spaces.add(new Spaces(game,game.Lands.get(0).xPos+(game.CELL_SIZE*z),game.Lands.get(0).yPos+(game.CELL_SIZE*z),game.CELL_SIZE-(game.CELL_SIZE/20),game.CELL_SIZE-(game.CELL_SIZE/20),""));
+				}
+			}
+		}
+	};
+
 	public GameController(){
 		 super("FrameDemo");
 //	        addWindowListener(this);	
@@ -139,17 +223,20 @@ public class GameController extends JFrame{
 		InitSpaces();
 		Plants.add(new Plants(this,0,0,0,0, "BLUEBERRY", 0,30,10,false,false));
 		menu.add(new Menu(this,100,100,100,20,0,"BLUEBERRY"));
-		seeds.add(new Seeds(this,10,"BLUEBERRY"));
-		buttons.add(but.DimButtonToShop);
-		buttons.add(but.DimButtonsToFarm);
-		buttons.add(but.PurchaseButtons);
-		buttons.add(but.SellButtons);
+		seeds.add(new Seeds(this,1000,"BLUEBERRY"));
+		buttons.add(DimButtonToShop);
+		buttons.add(DimButtonsToFarm);
+		buttons.add(PurchaseButtons);
+		buttons.add(SellButtons);
 	}
 	public void step(){
 		MouseControl(MouseX, MouseY);
 		PlantControl();
 		if(DragBoxes.size()==1){
 			System.out.println("RAN DRAG");
+			if(DragBoxes.size()==1){
+				DragBoxes.get(0).Drag(MouseX,MouseY,game);
+			}
 		}
 		if(Lands.get(0).Size==2){
 			Lands.get(0).Width=1;
@@ -172,16 +259,30 @@ public class GameController extends JFrame{
 				starttime=0;
 			}
 		}
+		if(nothingToCollect==true){
+			starttime++;
+			if(starttime>=endtime){
+				nothingToCollect=false;
+				starttime=0;
+			}
+		}
+		if(noSeedSelected==true){
+			starttime++;
+			if(starttime>=endtime){
+				noSeedSelected=false;
+				starttime=0;
+			}
+		}
 		SpacesControl();
 
 	}
 	public void ButtonDraw(Graphics g, Button button){
 		g.setColor(button.boxColor);
-		if(button.price!=0){
-			g.drawString(((Integer)button.price).toString() , button.xPos, button.yPos+button.Height/2);
-		}
+			g.drawString(((Integer)button.price).toString() , button.xPos, button.yPos+button.Height+40);
+		
 		g.fillRect(button.xPos-5,button.yPos-5,button.Width+10,button.Height+10);
 		g.drawImage(button.getImage(), button.xPos, button.yPos, button.Width, button.Height, null);
+		
 	}
 	public void delay (int time){
 		try{
@@ -309,8 +410,10 @@ public class GameController extends JFrame{
 				}
 				for(DragBox x : DragBoxes){
 					System.out.println("PAINTED");
-					g.setColor(Color.BLUE);
-					g.fillRect(x.OriX, x.OriY, x.Width, x.Height);
+					g.setColor(new Color(0,191,255,25));
+					g.fillRect(x.MinX, x.MinY, x.Width, x.Height);
+					g.setColor(new Color(0,191,255));
+					g.drawRect(x.MinX, x.MinY, x.Width, x.Height);
 				}
 				if(noSeeds==true){
 					g.setColor(Color.WHITE);
@@ -320,6 +423,22 @@ public class GameController extends JFrame{
 					g.setColor(Color.red);
 					g.drawString("NO SEEDS",500,500);
 
+				}
+				if(nothingToCollect==true){
+					g.setColor(Color.WHITE);
+					g.fillRect(475, 475, 200, 40);
+					g.setColor(Color.BLACK);
+					g.drawRect(475, 475, 200, 40);
+					g.setColor(Color.red);
+					g.drawString("NOTHING TO COLLECT",500,500);
+				}
+				if(noSeedSelected==true){
+					g.setColor(Color.WHITE);
+					g.fillRect(475, 475, 180, 40);
+					g.setColor(Color.BLACK);
+					g.drawRect(475, 475, 180, 40);
+					g.setColor(Color.red);
+					g.drawString("NO SEED SELECTED",500,500);
 				}
 				if(Selected.equals("Planter")){
 					g.setColor(Color.WHITE);
@@ -436,13 +555,14 @@ public class GameController extends JFrame{
 		@Override
 		public void mouseDragged(MouseEvent e) {
 			// TODO Auto-generated method stub
+			MouseX=e.getX();
+			MouseY = e.getY();
 		}
 		@Override
 		public void mouseMoved(MouseEvent e) {
 			// TODO Auto-generated method stub
-			if(DragBoxes.size()==1){
-				DragBoxes.get(0).Drag(e.getX(),e.getY(),game);
-			}
+			System.out.println("PRINTED");
+			System.out.println(DragBoxes.size());
 			MouseX=e.getX();
 			MouseY = e.getY();
 		}
@@ -491,8 +611,6 @@ public class GameController extends JFrame{
 		@Override
 		public void mouseClicked(MouseEvent e) {
 			// TODO Auto-generated method stub
-			System.out.println(DragBoxes.size());
-			System.out.println(DragBoxes.size());
 			menus.ClickonButton(e.getX(),e.getY(), game);
 			but.ClickedOn(e.getX(), e.getY(), game);
 			if(Selected == "Collector"){
@@ -500,19 +618,22 @@ public class GameController extends JFrame{
 			}
 			if(Selected == "Planter"){
 				planter.InsertPlant(e.getX(), e.getY(), game, selectedPlant);
-
 			}
 		}
 		@Override
 		public void mousePressed(MouseEvent e) {
 			System.out.println("ADDED");
-			DragBoxes.add(new DragBox(game,e.getX(),e.getY(),e.getX(),e.getY(),0,0,true));
+			System.out.println(DragBoxes.size());
+			System.out.println(DragBoxes.size());
+			DragBoxes.add(new DragBox(game,e.getX(),e.getY(),e.getX(),e.getY(),0,0,0,0,true,true));
 			// TODO Auto-generated method stub
 
 		}
 		@Override
 		public void mouseReleased(MouseEvent e) {
 			// TODO Auto-generated method stub
+			DragBoxes.get(0).CheckCont(game);
+			DragBoxes.get(0).Dragging=false;
 			if(DragBoxes.size()>=1){
 				System.out.println("REMOVED");
 			DragBoxes.get(0).Clicked=false;
